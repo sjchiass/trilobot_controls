@@ -9,9 +9,9 @@ from time import sleep
 from datetime import datetime, timedelta
 from time import sleep
 import io
+import asyncio
 
 # Extra libraries
-import asyncio
 from fastapi import FastAPI, Path, Query, BackgroundTasks
 from fastapi.responses import Response
 from PIL import Image
