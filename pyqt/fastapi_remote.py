@@ -1,28 +1,40 @@
-from fastapi import FastAPI, Path, Query, BackgroundTasks
-from fastapi.responses import Response
-import asyncio
+#
+# API server for Trilobot
+#
+# Copy this file to your RPi, `cd` to its directory, and then
+# run this on your RPi with uvicorn fastapi_remote:app --host 0.0.0.0
+#
+# Standard libraries
 from time import sleep
-from trilobot import Trilobot
 from datetime import datetime, timedelta
 from time import sleep
-from brightpi import *
-
-brightPi = BrightPi()
-# This method is used to reset the SC620 to its original state.
-brightPi.reset()
-#brightPi.set_gain(0)
-
-from PIL import Image
 import io
-import json
-from picamera2 import Picamera2
-picam2 = Picamera2()
 
-preview_config = picam2.create_preview_configuration(main={"size": (800, 600)},
-    controls={"FrameDurationLimits": (100000, 10000)})
-picam2.configure(preview_config)
+# Extra libraries
+import asyncio
+from fastapi import FastAPI, Path, Query, BackgroundTasks
+from fastapi.responses import Response
+from PIL import Image
+from trilobot import Trilobot
 
-picam2.start()
+# Extra optional library: BrightPi LED array
+def activate_brightpi():
+    from brightpi import BrightPi
+    global BRIGHTPI
+    BRIGHTPI = BrightPi()
+    # This method is used to reset the SC620 to its original state.
+    BRIGHTPI.reset()
+    #brightPi.set_gain(0)
+
+# Extra optional library: Picamera2 for remote viewing
+def activate_picam2():
+    from picamera2 import Picamera2
+    global PICAM2
+    PICAM2 = Picamera2()
+    preview_config = PICAM2.create_preview_configuration(main={"size": (800, 600)},
+        controls={"FrameDurationLimits": (100000, 10000)})
+    PICAM2.configure(preview_config)
+    PICAM2.start()
 
 app = FastAPI()
 tbot = Trilobot()
@@ -93,31 +105,45 @@ async def ultrasonic():
 
 @app.get("/commands/headlights_on")
 async def headlights_on():
-    brightPi.set_led_on_off(LED_ALL[0:3], ON)
+    if "BRIGHTPI" not in globals():
+        activate_brightpi()
+    BRIGHTPI.set_led_on_off((1, 2, 3, 4), 1)
 
 @app.get("/commands/headlights_off")
 async def headlights_off():
-    brightPi.set_led_on_off(LED_ALL[0:3], OFF)
+    if "BRIGHTPI" not in globals():
+        activate_brightpi()
+    BRIGHTPI.set_led_on_off((1, 2, 3, 4), 0)
 
 @app.get("/commands/ir_headlights_on")
 async def ir_headlights_on():
-    brightPi.set_led_on_off(LED_ALL[4:8], ON)
+    if "BRIGHTPI" not in globals():
+        activate_brightpi()
+    BRIGHTPI.set_led_on_off((5, 6, 7, 8), 1)
 
 @app.get("/commands/ir_headlights_off")
 async def ir_headlights_off():
-    brightPi.set_led_on_off(LED_ALL[4:8], OFF)
+    if "BRIGHTPI" not in globals():
+        activate_brightpi()
+    BRIGHTPI.set_led_on_off((5, 6, 7, 8), 0)
 
 @app.get("/commands/nightmode_on")
 async def nightmode_on():
-    picam2.set_controls({"Brightness": 1.0, "Contrast": 3.0, "Saturation": 0.0})
+    if "PICAM2" not in globals():
+        activate_picam2()
+    PICAM2.set_controls({"Brightness": 1.0, "Contrast": 3.0, "Saturation": 0.0})
 
 @app.get("/commands/nightmode_off")
 async def nightmode_off():
-    picam2.set_controls({"Brightness": 0.0, "Contrast": 1.0, "Saturation": 1.0})
+    if "PICAM2" not in globals():
+        activate_picam2()
+    PICAM2.set_controls({"Brightness": 0.0, "Contrast": 1.0, "Saturation": 1.0})
 
 @app.get("/commands/capture_camera")
 async def capture_camera():
-    arr = picam2.capture_array()
+    if "PICAM2" not in globals():
+        activate_picam2()
+    arr = PICAM2.capture_array()
     im = Image.fromarray(arr)
     
     # save image to an in-memory bytes buffer
