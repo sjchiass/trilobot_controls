@@ -11,10 +11,19 @@ import argparse
 
 parser = argparse.ArgumentParser(
     description="Control a robot API")
-parser.add_argument("api_address", type=str, help="Address of API server, something like https://192.168.0.1:8000/")
+parser.add_argument("api_address", type=str, help="Address of API server, something like http://192.168.0.1:8000/")
 
 args = parser.parse_args()
 
+# Test the connection
+try:
+    requests.get(args.api_address)
+    print("Connection successful")
+except requests.exceptions.ConnectionError as e:
+    print(e)
+    print("\n*** Check your RPi's address and make sure the API is running  ***")
+    print("*** The address should something like http://192.168.0.1:8000/ ***")
+    exit()
 
 class UltrasonicWorker(QObject):
     finished = pyqtSignal()
