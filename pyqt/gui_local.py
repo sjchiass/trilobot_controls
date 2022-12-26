@@ -12,18 +12,24 @@ import argparse
 parser = argparse.ArgumentParser(
     description="Control a robot API")
 parser.add_argument("api_address", type=str, help="Address of API server, something like http://192.168.0.1:8000/")
+parser.add_argument("--debug", action="store_true", help="Print out all API calls to the console")
 
 args = parser.parse_args()
 
 # Test the connection
 try:
     requests.get(args.api_address)
-    print("Connection successful")
+    print(f"*** Connection to '{args.api_address}' is successful ***")
 except requests.exceptions.ConnectionError as e:
     print(e)
     print("\n*** Check your RPi's address and make sure the API is running  ***")
     print("*** The address should something like http://192.168.0.1:8000/ ***")
     exit()
+
+def api_call(address):
+    r = requests.get(address).status_code
+    if args.debug:
+        print(f"[{r}] {address}")
 
 class UltrasonicWorker(QObject):
     finished = pyqtSignal()
@@ -295,39 +301,37 @@ class MainWindow(QWidget):
         self.motor_balance_label.setText(f"{left_adj}:{right_adj}")
     
     def servo_slider_changed(self, event):
-        requests.get(f"{args.api_address}commands/servo?angle={event/2}")
+        api_call(f"{args.api_address}commands/servo?angle={event/2}")
         print(f"{args.api_address}commands/servo?angle={event/2}")
     
     def rgb_slider_changed(self, event):
         r = self.r_slider.value()
         g = self.g_slider.value()
         b = self.b_slider.value()
-        requests.get(f"{args.api_address}commands/lights_rgb?red={r}&green={g}&blue={b}")
-        print(f"{args.api_address}commands/lights_rgb?red={r}&green={g}&blue={b}")
+        api_call(f"{args.api_address}commands/lights_rgb?red={r}&green={g}&blue={b}")
     
     def headlights_changed(self, event):
         if self.headlights.isChecked():
-            requests.get(f"{args.api_address}commands/headlights_on")
+            api_call(f"{args.api_address}commands/headlights_on")
         else:
-            requests.get(f"{args.api_address}commands/headlights_off")
+            api_call(f"{args.api_address}commands/headlights_off")
     
     def ir_headlights_changed(self, event):
         if self.ir_headlights.isChecked():
-            requests.get(f"{args.api_address}commands/ir_headlights_on")
+            api_call(f"{args.api_address}commands/ir_headlights_on")
         else:
-            requests.get(f"{args.api_address}commands/ir_headlights_off")
+            api_call(f"{args.api_address}commands/ir_headlights_off")
     
     def high_visibility_changed(self, event):
         if self.high_visibility.isChecked():
-            requests.get(f"{args.api_address}commands/nightmode_on")
+            api_call(f"{args.api_address}commands/nightmode_on")
         else:
-            requests.get(f"{args.api_address}commands/nightmode_off")
+            api_call(f"{args.api_address}commands/nightmode_off")
     
     def keyPressEvent(self, event):
         if event.isAutoRepeat():
-            #requests.get(f"{args.api_address}checkin")
             return
-        print("press"+str(event.key()))
+        #print(f"[{event.key()}] key pressed")
         if event.key() in self.move_keys:
             for i in range(1, 10):
                 if event.key() == self.move_keys[i]:
@@ -342,12 +346,13 @@ class MainWindow(QWidget):
         elif event.key() == 42:
             self.servo_slider.setValue(self.servo_slider.value()+1)
         elif event.key() == 48:
+            # Print the ultrasonic distance to console
             print(requests.get(f"{args.api_address}commands/ultrasonic").text)
         
     def keyReleaseEvent(self, event):
         if event.isAutoRepeat():
             return
-        print("release"+str(event.key()))
+        #print(f"[{event.key()}] key released")
         if event.key() in self.move_keys:
             for i in range(1, 10):
                 if event.key() == self.move_keys[i]:
@@ -361,7 +366,6 @@ class MainWindow(QWidget):
         left = 0
         right = 0
         concurrent = sum([self.move_buttons[i].isChecked() for i in range(1, 10)])
-        print(concurrent)
         if concurrent:
             if self.move_buttons[1].isChecked():
                 left += -0.7*speed
@@ -395,14 +399,13 @@ class MainWindow(QWidget):
             self.left_motor_slider.setValue(int(50+50*left))
             self.right_motor_slider.setValue(int(50+50*right))
             self.right_motor_label.setText(f"{right:5.2f}")
-            requests.get(f"{args.api_address}commands/drive?left={left}&right={right}")
+            api_call(f"{args.api_address}commands/drive?left={left:.2f}&right={right:.2f}")
         else:
-            requests.get(f"{args.api_address}commands/coast")
+            api_call(f"{args.api_address}commands/coast")
             self.left_motor_label.setText(" 0.00")
             self.left_motor_slider.setValue(50)
             self.right_motor_slider.setValue(50)
             self.right_motor_label.setText(" 0.00")
-        print(f"{args.api_address}commands/drive?left={left}&right={right}")
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
