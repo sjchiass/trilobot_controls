@@ -1,3 +1,10 @@
+#
+# PyQt GUI for remote control of Trilobot from your PC
+#
+# Make sure to be running the API server on your Raspberry Pi. Then take
+# its LAN IP address to connect this GUI to it, something like this:
+# http://192.168.0.1:8000/
+#
 import sys
 from PyQt5.QtWidgets import *
 from PyQt5.Qt import Qt
@@ -26,6 +33,7 @@ except requests.exceptions.ConnectionError as e:
     print("*** The address should something like http://192.168.0.1:8000/ ***")
     exit()
 
+# If in debug mode, print the API call and its response code
 def api_call(address):
     r = requests.get(address).status_code
     if args.debug:
