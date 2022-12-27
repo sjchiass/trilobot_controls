@@ -1,0 +1,87 @@
+<!-- The javascript for controlling the bot comes from here:
+https://www.w3schools.com/graphics/game_controllers.asp -->
+<html>
+
+<head>
+    <title>Trilobot HTML controls</title>
+    <script>
+        function httpGet(theUrl) {
+            var xmlHttp = new XMLHttpRequest();
+            xmlHttp.open("GET", theUrl, false); // true for asynchronous 
+            xmlHttp.send(null);
+            return xmlHttp.responseText;
+        }
+
+        function httpGetAsync(theUrl) {
+            var xmlHttp = new XMLHttpRequest();
+            xmlHttp.open("GET", theUrl, true); // true for asynchronous 
+            xmlHttp.send(null);
+        }
+
+        var myGamePiece = {
+            speedL: 0, speedR: 0
+        }
+
+        function startGame() {
+            myGameArea.start();
+        }
+
+        var myGameArea = {
+            start: function () {
+                this.motor_interval = setInterval(updateGameArea, 100);
+                this.ultrasonic_interval = setInterval(updateUltrasonic, 2500);
+                window.addEventListener('keydown', function (e) {
+                    myGameArea.keys = (myGameArea.keys || []);
+                    myGameArea.keys[e.keyCode] = (e.type == "keydown");
+                })
+                window.addEventListener('keyup', function (e) {
+                    myGameArea.keys[e.keyCode] = (e.type == "keydown");
+                })
+            }
+        }
+
+        function updateGameArea() {
+            var old_L = myGamePiece.speedL;
+            var old_R = myGamePiece.speedR;
+            myGamePiece.speedL = 0;
+            myGamePiece.speedR = 0;
+            var keys_pressed = 0;
+            // Arrow keys: left, up, right, down
+            if (myGameArea.keys && myGameArea.keys[37]) { myGamePiece.speedL += -0.7; myGamePiece.speedR += 0.7; keys_pressed++; }
+            if (myGameArea.keys && myGameArea.keys[38]) { myGamePiece.speedL += 1; myGamePiece.speedR += 1; keys_pressed++; }
+            if (myGameArea.keys && myGameArea.keys[39]) { myGamePiece.speedL += 0.7; myGamePiece.speedR += -0.7; keys_pressed++; }
+            if (myGameArea.keys && myGameArea.keys[40]) { myGamePiece.speedL += -1; myGamePiece.speedR += -1; keys_pressed++; }
+            // Numpad (numlock): 1, 2, 3, 4, 5, 6, 7, 8, 9
+            if (myGameArea.keys && myGameArea.keys[97]) { myGamePiece.speedL += -0.7; myGamePiece.speedR += 1; keys_pressed++; }
+            if (myGameArea.keys && myGameArea.keys[98]) { myGamePiece.speedL += -1; myGamePiece.speedR += -1; keys_pressed++; }
+            if (myGameArea.keys && myGameArea.keys[99]) { myGamePiece.speedL += -1; myGamePiece.speedR += -0.7; keys_pressed++; }
+            if (myGameArea.keys && myGameArea.keys[100]) { myGamePiece.speedL += -1; myGamePiece.speedR += 1; keys_pressed++; }
+            if (myGameArea.keys && myGameArea.keys[101]) { keys_pressed++; }
+            if (myGameArea.keys && myGameArea.keys[102]) { myGamePiece.speedL += 1; myGamePiece.speedR += -1; keys_pressed++; }
+            if (myGameArea.keys && myGameArea.keys[103]) { myGamePiece.speedL += 0.7; myGamePiece.speedR += 1; keys_pressed++; }
+            if (myGameArea.keys && myGameArea.keys[104]) { myGamePiece.speedL += 1; myGamePiece.speedR += 1; keys_pressed++; }
+            if (myGameArea.keys && myGameArea.keys[105]) { myGamePiece.speedL += 1; myGamePiece.speedR += 0.7; keys_pressed++; }
+
+            if (myGamePiece.speedL != 0) { myGamePiece.speedL *= 0.8 / keys_pressed; }
+            if (myGamePiece.speedR != 0) { myGamePiece.speedR *= 0.8 / keys_pressed; }
+            if (old_L != myGamePiece.speedL && old_R != myGamePiece.speedR) {
+                httpGetAsync(`/commands/drive?left=${myGamePiece.speedL}&right=${myGamePiece.speedR}`)
+            }
+        }
+
+        function updateUltrasonic() {
+            const element = document.getElementById("ultrasonic_distance");
+            element.innerHTML = httpGet("/commands/ultrasonic");
+        }
+    </script>
+</head>
+
+<body onload="startGame()">
+    <img src="http://192.168.0.160:8888/stream.mjpg" width="640" height="480"><br>
+    <button onclick="httpGetAsync('/commands/lights_on')">Lights on</button><br>
+    <button onclick="httpGetAsync('/commands/lights_off')">Lights off</button><br>
+    Ultrasonic distance <div id="ultrasonic_distance"></div>
+
+</body>
+
+</html>
