@@ -68,7 +68,7 @@ async def coast():
 
 @app.get("/commands/ultrasonic")
 async def ultrasonic():
-    return {"message": tbot.read_distance()}
+    return f"{tbot.read_distance():3.0f}cm"
 
 # The javascript for controlling the bot comes from here:
 # https://www.w3schools.com/graphics/game_controllers.asp

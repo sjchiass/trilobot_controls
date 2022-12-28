@@ -4,14 +4,48 @@ https://www.w3schools.com/graphics/game_controllers.asp -->
 
 <head>
     <title>Trilobot HTML controls</title>
-    <script>
-        function httpGet(theUrl) {
-            var xmlHttp = new XMLHttpRequest();
-            xmlHttp.open("GET", theUrl, false); // true for asynchronous 
-            xmlHttp.send(null);
-            return xmlHttp.responseText;
+    <style>
+        .item1 {
+            grid-area: stream;
         }
 
+        .item2 {
+            grid-area: lights;
+        }
+
+        .item3 {
+            grid-area: range;
+        }
+
+        .item4 {
+            grid-area: power;
+        }
+
+        .item5 {
+            grid-area: balance;
+        }
+
+        .item6 {
+            grid-area: help;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-areas:
+                'stream lights range'
+                'stream power balance'
+                'stream help help';
+            gap: 10px;
+            padding: 10px;
+        }
+
+        .grid-container>div {
+            text-align: center;
+            padding: 20px 0;
+            font-size: 30px;
+        }
+    </style>
+    <script>
         function httpGetAsync(theUrl) {
             var xmlHttp = new XMLHttpRequest();
             xmlHttp.open("GET", theUrl, true); // true for asynchronous 
@@ -28,7 +62,7 @@ https://www.w3schools.com/graphics/game_controllers.asp -->
 
         var myGameArea = {
             start: function () {
-                this.motor_interval = setInterval(updateGameArea, 100);
+                this.motor_interval = setInterval(updateGameArea, 20);
                 this.ultrasonic_interval = setInterval(updateUltrasonic, 2500);
                 window.addEventListener('keydown', function (e) {
                     myGameArea.keys = (myGameArea.keys || []);
@@ -47,9 +81,9 @@ https://www.w3schools.com/graphics/game_controllers.asp -->
             myGamePiece.speedR = 0;
             var keys_pressed = 0;
             // Arrow keys: left, up, right, down
-            if (myGameArea.keys && myGameArea.keys[37]) { myGamePiece.speedL += -0.7; myGamePiece.speedR += 0.7; keys_pressed++; }
+            if (myGameArea.keys && myGameArea.keys[37]) { myGamePiece.speedL += -0.5; myGamePiece.speedR += 0.5; keys_pressed++; }
             if (myGameArea.keys && myGameArea.keys[38]) { myGamePiece.speedL += 1; myGamePiece.speedR += 1; keys_pressed++; }
-            if (myGameArea.keys && myGameArea.keys[39]) { myGamePiece.speedL += 0.7; myGamePiece.speedR += -0.7; keys_pressed++; }
+            if (myGameArea.keys && myGameArea.keys[39]) { myGamePiece.speedL += 0.5; myGamePiece.speedR += -0.5; keys_pressed++; }
             if (myGameArea.keys && myGameArea.keys[40]) { myGamePiece.speedL += -1; myGamePiece.speedR += -1; keys_pressed++; }
             // Numpad (numlock): 1, 2, 3, 4, 5, 6, 7, 8, 9
             if (myGameArea.keys && myGameArea.keys[97]) { myGamePiece.speedL += -0.7; myGamePiece.speedR += 1; keys_pressed++; }
@@ -62,25 +96,56 @@ https://www.w3schools.com/graphics/game_controllers.asp -->
             if (myGameArea.keys && myGameArea.keys[104]) { myGamePiece.speedL += 1; myGamePiece.speedR += 1; keys_pressed++; }
             if (myGameArea.keys && myGameArea.keys[105]) { myGamePiece.speedL += 1; myGamePiece.speedR += 0.7; keys_pressed++; }
 
-            if (myGamePiece.speedL != 0) { myGamePiece.speedL *= 0.8 / keys_pressed; }
-            if (myGamePiece.speedR != 0) { myGamePiece.speedR *= 0.8 / keys_pressed; }
+            var power = document.getElementById("power").value / 10;
+            document.getElementById("power_val").innerHTML = 100 * power;
+            var l_balance = Math.min(2 - document.getElementById("balance").value / 50, 1);
+            document.getElementById("l_balance").innerHTML = l_balance.toFixed(2);
+            var r_balance = Math.min(document.getElementById("balance").value / 50, 1);
+            document.getElementById("r_balance").innerHTML = r_balance.toFixed(2);
+            if (myGamePiece.speedL != 0) { myGamePiece.speedL *= l_balance * power / keys_pressed; }
+            if (myGamePiece.speedR != 0) { myGamePiece.speedR *= r_balance * power / keys_pressed; }
             if (old_L != myGamePiece.speedL && old_R != myGamePiece.speedR) {
-                httpGetAsync(`/commands/drive?left=${myGamePiece.speedL}&right=${myGamePiece.speedR}`)
+                if (myGamePiece.speedL == 0 && myGamePiece.speedR == 0) {
+                    httpGetAsync("/commands/coast")
+                } else {
+                    httpGetAsync(`/commands/drive?left=${myGamePiece.speedL.toFixed(2)}&right=${myGamePiece.speedR.toFixed(2)}`)
+                }
             }
         }
 
         function updateUltrasonic() {
-            const element = document.getElementById("ultrasonic_distance");
-            element.innerHTML = httpGet("/commands/ultrasonic");
+            var xmlHttp = new XMLHttpRequest();
+            xmlHttp.open("GET", "/commands/ultrasonic", false); // true for asynchronous 
+            xmlHttp.send(null);
+            document.getElementById("ultrasonic_distance").innerHTML = xmlHttp.responseText;
         }
     </script>
 </head>
 
 <body onload="startGame()">
-    <img src="http://192.168.0.160:8888/stream.mjpg" width="640" height="480"><br>
-    <button onclick="httpGetAsync('/commands/lights_on')">Lights on</button><br>
-    <button onclick="httpGetAsync('/commands/lights_off')">Lights off</button><br>
-    Ultrasonic distance <div id="ultrasonic_distance"></div>
+    <div class="grid-container">
+        <div class="item1"><img src="http://192.168.0.160:8888/stream.mjpg" width="640" height="480"></div>
+        <div class="item2">
+            <button onclick="httpGetAsync('/commands/lights_on')">Lights white</button><br>
+            <button onclick="httpGetAsync('/commands/lights_rgb?red=255&green=0&blue=0')">Lights red</button><br>
+            <button onclick="httpGetAsync('/commands/lights_rgb?red=0&green=255&blue=0')">Lights green</button><br>
+            <button onclick="httpGetAsync('/commands/lights_rgb?red=0&green=0&blue=255')">Lights blue</button><br>
+            <button onclick="httpGetAsync('/commands/lights_off')">Lights off</button>
+        </div>
+        <div class="item3">Ultrasonic distance <span id="ultrasonic_distance"></span>
+        </div>
+        <div class="item4">
+            Motor power<br>
+            <input id="power" type="range" min="0" max="10" value="8"><br>
+            <span id="power_val"></span>%
+        </div>
+        <div class="item5">
+            Motor balance<br>
+            <input id="balance" type="range" min="0" max="100" value="50"><br>
+            <span id="l_balance"></span>:<span id="r_balance"></span>
+        </div>
+        <div class="item6">Use the keyboard arrow keys or the numpad (with numlock) to navigate</div>
+    </div>
 
 </body>
 
