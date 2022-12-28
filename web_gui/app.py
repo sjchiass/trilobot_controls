@@ -16,10 +16,12 @@ from PIL import Image
 from trilobot import Trilobot
 from fastapi import FastAPI, Query, Request
 from fastapi.templating import Jinja2Templates
+from fastapi.staticfiles import StaticFiles
 
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
 tbot = Trilobot()
@@ -72,6 +74,8 @@ async def ultrasonic():
 
 # The javascript for controlling the bot comes from here:
 # https://www.w3schools.com/graphics/game_controllers.asp
+
+
 @app.get("/")
 def render_controls(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
