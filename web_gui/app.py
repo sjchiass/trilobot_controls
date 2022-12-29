@@ -77,5 +77,13 @@ async def ultrasonic():
 
 
 @app.get("/")
-def render_controls(request: Request):
+def render_index(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
+
+@app.get("/desktop")
+def render_desktop(request: Request):
+    return templates.TemplateResponse("desktop.html", {"request": request})
+
+@app.get("/mobile")
+def render_mobile(request: Request):
+    return templates.TemplateResponse("mobile.html", {"request": request})
