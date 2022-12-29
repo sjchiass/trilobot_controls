@@ -6,13 +6,9 @@
 #
 # Standard libraries
 from time import sleep
-from datetime import datetime, timedelta
 from time import sleep
-import io
-import asyncio
 
 # Extra libraries
-from PIL import Image
 from trilobot import Trilobot
 from fastapi import FastAPI, Query, Request
 from fastapi.templating import Jinja2Templates
