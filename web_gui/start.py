@@ -26,6 +26,8 @@ local_ip = socket.gethostbyname(hostname)
 
 print("*** Access the controls here ***")
 print(f"--> http://{local_ip}:8000/")
+print("    (If this doesn't work, run the `ifconfig`")
+print("     command to see other IP addresses)")
 print("*** Press CTRL+C to shutdown ***")
 
 # Keep going until done
