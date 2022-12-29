@@ -1,0 +1,59 @@
+<!-- https://github.com/bobboteck/JoyStick -->
+<html>
+
+<head>
+    <title>Trilobot HTML controls</title>
+    <script type="text/javascript" src="/static/joystick.js"></script>
+    <script>
+        function httpGetAsync(theUrl) {
+            var xmlHttp = new XMLHttpRequest();
+            xmlHttp.open("GET", theUrl, true); // true for asynchronous 
+            xmlHttp.send(null);
+        }
+
+        // Use these values to track changes to the JoyStick
+        // We want to limit the amount of calls to the API
+        var old_posX = 0;
+        var old_posY = 0;
+
+        function updateControls() {
+            // Get function values
+            var posX = Math.round(Joy.GetX());
+            var posY = Math.round(Joy.GetY());
+            if (posX != old_posX || posY != old_posY) {
+
+                old_posX = posX;
+                old_posY = posY;
+
+                // Limit values, especially when the joystick is along the diagonals
+                var adjust = Math.max(Math.abs(posX) + Math.abs(posY), 100);
+                var motorL = (posY + posX / 2) / adjust;
+                var motorR = (posY - posX / 2) / adjust;
+
+                // If the joystick is neutral, power down the motors
+                if (motorL == 0 && motorR == 0) {
+                    httpGetAsync("/commands/coast");
+                } else {
+                    httpGetAsync(`/commands/drive?left=${motorL.toFixed(2)}&right=${motorR.toFixed(2)}`);
+                }
+            }
+        }
+    </script>
+</head>
+
+<body>
+    <img id="stream" src="" width="640" height="480" style="display: block;margin-left: auto;margin-right: auto;">
+    <script>
+        // Change the stream URL with javascript
+        document.getElementById("stream").src = "http://" + document.URL.split("://")[1].split(":")[0] + ":8001/stream.mjpg"
+    </script>
+    <br>
+    <div id="joyDiv" style="display: block;margin-left: auto;margin-right: auto;width:500px;height:500px;"></div>
+    <script type="text/javascript">
+        var joyParam = { "title": "joystick" };
+        var Joy = new JoyStick('joyDiv', joyParam);
+        setInterval(function () { updateControls(); }, 100);
+    </script>
+</body>
+
+</html>
