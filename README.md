@@ -2,9 +2,9 @@
 
 ## Three examples of controls
 
-I've the three examples apart
+I've split the three examples apart
 
-* Basic console controls that can be used over SSH
+* Really basic [console controls](./ssh/) that can be used over SSH
 * A [PyQt GUI](./pyqt/) that communicates from a desktop PC to an API on the Trilobot
 * A [web server](./web_gui/) that offers desktop and mobile controls on a local website
 

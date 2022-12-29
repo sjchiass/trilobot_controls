@@ -2,12 +2,8 @@ import sys
 import select
 import tty
 import termios
-from random import sample
-from subprocess import Popen
 from time import sleep
 from trilobot import Trilobot
-
-# Also requires: pigpiod
 
 tbot = Trilobot()
 tbot.servo_to_center()
@@ -42,21 +38,6 @@ def tbot_dispatch(i, speed):
             tbot.servo_to_percent(0.75)
         elif i == "m":
             tbot.servo_to_percent(0.95)
-    elif i == "g":
-        to_play = sample([
-        ["ogg123", "meow1.ogg"],
-        ["ogg123", "meow2.ogg"],
-        ["aplay", "meow3.wav"],
-        ["ogg123", "meow4.ogg"]
-        ], 1)
-        Popen(to_play[0])
-    elif i == "f":
-        to_play = sample([
-        ["ogg123", "fart1.ogg"],
-        ["aplay", "fart2.wav"],
-        ["ogg123", "fart3.ogg"]
-        ], 1)
-        Popen(to_play[0])
     elif i == "l":
         tbot.fill_underlighting(255, 255, 255)
     elif i == "k":
