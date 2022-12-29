@@ -1,0 +1,96 @@
+<!-- The javascript for controlling the bot comes from here:
+https://www.w3schools.com/graphics/game_controllers.asp -->
+<html>
+
+<head>
+    <title>Trilobot HTML controls</title>
+    <style>
+        .item1 {
+            grid-area: stream;
+        }
+
+        .item2 {
+            grid-area: lights;
+        }
+
+        .item3 {
+            grid-area: range;
+        }
+
+        .item4 {
+            grid-area: power;
+        }
+
+        .item5 {
+            grid-area: balance;
+        }
+
+        .item6 {
+            grid-area: servo;
+        }
+
+        .item7 {
+            grid-area: help;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-areas:
+                'stream lights range'
+                'stream power balance'
+                'stream servo servo'
+                'stream help help';
+            gap: 10px;
+            padding: 10px;
+        }
+
+        .grid-container>div {
+            text-align: center;
+            padding: 20px 0;
+            font-size: 30px;
+        }
+    </style>
+    <script type="text/javascript" src="/static/controls.js" defer></script>
+
+</head>
+
+<body>
+    <div class="grid-container">
+        <div class="item1">
+            Stream<br>
+            <img id="stream" src="" width="640" height="480">
+        </div>
+        <script>
+            // Change the stream URL with javascript
+            document.getElementById("stream").src = "http://" + document.URL.split("://")[1].split(":")[0] + ":8001/stream.mjpg"
+        </script>
+        <div class="item2">
+            Chassis RGB LEDs<br>
+            <button onclick="httpGetAsync('/commands/lights_rgb?red=255&green=0&blue=0')">Lights red</button>
+            <button onclick="httpGetAsync('/commands/lights_rgb?red=0&green=255&blue=0')">Lights green</button>
+            <button onclick="httpGetAsync('/commands/lights_rgb?red=0&green=0&blue=255')">Lights blue</button><br>
+            <button onclick="httpGetAsync('/commands/lights_on')">Lights white</button>
+            <button onclick="httpGetAsync('/commands/lights_off')">Lights off</button>
+        </div>
+        <div class="item3">Ultrasonic distance <span id="ultrasonic_distance"></span>
+        </div>
+        <div class="item4">
+            Motor power<br>
+            <input id="power" type="range" min="0" max="10" value="8"><br>
+            <span id="power_val"></span>%
+        </div>
+        <div class="item5">
+            Motor balance<br>
+            <input id="balance" type="range" min="0" max="100" value="50"><br>
+            <span id="l_balance"></span>:<span id="r_balance"></span>
+        </div>
+        <div class="item6">
+            Servo<br>
+            <input id="servo" type="range" min="0" max="10" value="5">
+        </div>
+        <div class="item7">Use the keyboard arrow keys to navigate</div>
+    </div>
+
+</body>
+
+</html>
