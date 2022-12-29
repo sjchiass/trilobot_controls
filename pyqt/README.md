@@ -7,7 +7,7 @@
 
 ## Dependencies
 
-* [asynchio](https://pypi.org/project/fastapi/) `pip install fastapi`
+* [FastAPI](https://pypi.org/project/fastapi/) `pip install fastapi`
 * [PIL](https://pypi.org/project/Pillow/) `pip install Pillow`
 * [trilobot](https://github.com/pimoroni/trilobot-python) `pip3 install trilobot`
 
